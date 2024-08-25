@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/UI/UI.iml" filepath="$PROJECT_DIR$/UI/UI.iml" />
       <module fileurl="file://$PROJECT_DIR$/spreadSheet.iml" filepath="$PROJECT_DIR$/spreadSheet.iml" />
+      <module fileurl="file://$PROJECT_DIR$/systemEngine/systemEngine.iml" filepath="$PROJECT_DIR$/systemEngine/systemEngine.iml" />
     </modules>
   </component>
 </project>
