@@ -1,11 +1,11 @@
 package engine.impl;
 import engine.api.Cell;
 import engine.api.Coordinate;
-import engine.api.SheetVersion;
+import engine.api.VersionsHandler;
 
 import java.util.*;
 
-public class SheetVersionImpl implements SheetVersion {
+public class SheetVersionImpl implements VersionsHandler {
     private int versionNumber;
     private Map<Coordinate, Cell> sheetState;
 

@@ -1,19 +1,23 @@
 package engine.sheetFunctions;
 import engine.api.Cell;
-import engine.api.Sheet;
+import engine.api.SheetReader;
+import engine.api.SheetWriter;
 import engine.value.CellType;
 import engine.value.EffectiveValue;
 import engine.value.EffectiveValueImpl;
 
 public class REFExpression implements Expression {
     private String ref;
-    private Sheet sheet;
+    private SheetWriter sheet;
     private Cell REFCell;
     private Cell currentCell;
 
-    public REFExpression(String ref, Sheet sheet, Cell currentCell) {
+    public REFExpression(String ref, SheetWriter sheet, Cell currentCell) {
         this.ref = ref;
         this.sheet = sheet;
+        if(sheet.getCell(ref) == null){
+            addEmptyCell();
+        }
         this.REFCell = sheet.getCell(ref);
         this.currentCell = currentCell;
     }
@@ -39,10 +43,15 @@ public class REFExpression implements Expression {
 
     @Override
     public EffectiveValue eval() {
-
         currentCell.getDependsOn().add(REFCell);
         REFCell.getInfluencingOn().add(currentCell);
         return new EffectiveValueImpl(getFunctionResultType(), REFCell.getEffectiveValue());
+    }
+
+    public void addEmptyCell(){
+        String value = " ";
+        sheet.setCell(ref,value);
+        sheet.getCell(ref).setEffectiveValue(value);
     }
 
     public Cell getRefCell() {

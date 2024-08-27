@@ -8,7 +8,6 @@ public interface Engine {
     void displaySingleCell(String cellIdentity);
     boolean checkIfValidCell(String s);
     boolean updateCell(String cellIdentity,String value);
-    void updateInfluencingCells(Cell cell, Sheet sheet);
     Cell getCell(String cell);
     void resetCell(Cell cell);
     void displayVersions();

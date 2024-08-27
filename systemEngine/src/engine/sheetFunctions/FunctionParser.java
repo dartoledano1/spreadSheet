@@ -1,6 +1,6 @@
 package engine.sheetFunctions;
 import engine.api.Cell;
-import engine.api.Sheet;
+import engine.api.SheetWriter;
 import engine.value.CellType;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.Stack;
 
         IDENTITY{
 
-            public Expression parse(List<String> args , Sheet sheet, Cell cell) {
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell) {
 
                 if(args.size() != 1)
                 {
@@ -56,7 +56,7 @@ import java.util.Stack;
 
         },
         PLUS {
-            public Expression parse(List<String> args, Sheet sheet, Cell cell) {
+            public Expression parse(List<String> args, SheetWriter sheet, Cell cell) {
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for PLUS, expecting 2 and received " + args.size());
@@ -77,7 +77,7 @@ import java.util.Stack;
             }
         },
         MINUS{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for PLUS, expecting 2 and received " + args.size());
@@ -99,7 +99,7 @@ import java.util.Stack;
             }
         },
         DIVIDE{
-            public Expression parse(List<String> args , Sheet sheet,Cell cell) {
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell) {
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for PLUS, expecting 2 and received " + args.size());
@@ -121,7 +121,7 @@ import java.util.Stack;
             }
         },
         MOD{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
 
                 try {
 
@@ -145,7 +145,7 @@ import java.util.Stack;
             }
         },
         POW{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for PLUS, expecting 2 and received " + args.size());
@@ -166,7 +166,7 @@ import java.util.Stack;
             }
         },
         TIMES{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for PLUS, expecting 2 and received " + args.size());
@@ -187,7 +187,7 @@ import java.util.Stack;
             }
         },
         ABS{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
 
                     if (args.size() != 1) {
@@ -222,7 +222,7 @@ import java.util.Stack;
 
         },
         CONCAT{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 2) {
                         throw new IllegalArgumentException("Invalid number of arguments for CONCAT, expecting 2 and received " + args.size());
@@ -245,7 +245,7 @@ import java.util.Stack;
 
         },
         SUB{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 3) {
                         throw new IllegalArgumentException("Invalid number of arguments for SUB, expecting 2 and received " + args.size());
@@ -298,7 +298,7 @@ import java.util.Stack;
             }
         },
         REF{
-            public Expression parse(List<String> args , Sheet sheet, Cell cell){
+            public Expression parse(List<String> args , SheetWriter sheet, Cell cell){
                 try {
                     if (args.size() != 1) {
                         throw new IllegalArgumentException("Invalid number of arguments for REF, expecting 2 and received " + args.size());
@@ -337,14 +337,15 @@ import java.util.Stack;
                 if(row < 1 || row > sheet.getNumOfCols())
                     throw new IllegalArgumentException("Invalid argument for REF, expected a row between 1 and " + sheet.getNumOfRows() + " and got " + row);
 
+
                 return new REFExpression(args.get(0).trim() , sheet, cell);
 
             }
         };
 
-        abstract public Expression parse(List<String> arguments ,  Sheet sheet, Cell cell);
+        abstract public Expression parse(List<String> arguments , SheetWriter sheet, Cell cell);
 
-        public static Expression parseExpression(String input , Sheet sheet, Cell cell)
+        public static Expression parseExpression(String input , SheetWriter sheet, Cell cell)
         {
             if(input.startsWith("{") && input.endsWith("}"))
             {
@@ -356,7 +357,6 @@ import java.util.Stack;
                 String functionName = TopLevelParts.get(0).trim().toUpperCase();
 
                 TopLevelParts.remove(0);
-
 
                 return FunctionParser.valueOf(functionName).parse(TopLevelParts , sheet, cell);
 

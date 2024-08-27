@@ -11,13 +11,13 @@ public interface Cell {
     Set<Cell> getInfluencingOn();
     String getName();
     Cell getPreviousVal();
-
+    void displaySingleCell();
     void setLastVersion(int lastVersion);
     void setOriginalValue(String originalValue);
     void setEffectiveValue(Object effectiveValue);
     void setName(String name);
     void setPreviousVal(Cell previousVal);
-    void calcEffectiveValue(Sheet sheet);
+    void calcEffectiveValue(SheetWriter sheet);
     void setDependsOn(Set<Cell> dependsOn);
     void setInfluencingOn(Set<Cell> influencingOn);
     void printDependsOn();

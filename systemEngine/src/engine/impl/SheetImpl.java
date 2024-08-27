@@ -1,17 +1,14 @@
 package engine.impl;
-import engine.api.Cell;
-import engine.api.Coordinate;
-import engine.api.Sheet;
-import engine.api.SheetVersion;
-
+import engine.api.*;
 import java.io.File;
 import java.util.*;
+import javax.xml.*;
 
-public class SheetImpl implements Sheet {
+public class SheetImpl implements SheetReader,SheetWriter {
     private Map<Coordinate, Cell> sheetMap;
     private String sheetName = "example";
     private int version;
-    private List<SheetVersion> versionHistory;
+    private List<VersionsHandler> versionHistory;
     private int numOfCols;
     private int numOfRows;
     private int[] columnsWidths;
@@ -52,13 +49,15 @@ public class SheetImpl implements Sheet {
     }
 
     @Override
-    public List<SheetVersion> getVersionHistory() {
+    public List<VersionsHandler> getVersionHistory() {
         return versionHistory;
     }
 
+    @Override
     public Cell getCell(String cell) {
         return sheetMap.get(parseCoordiante(cell));
     }
+
 
     @Override
     public void setSheetName(String sheetName) {
@@ -160,25 +159,6 @@ public class SheetImpl implements Sheet {
     }
 
     @Override
-    public void displaySingleCell(String cellIdentity) {
-        System.out.println("-Cell " + cellIdentity + " info-");
-        Cell cell = sheetMap.get(parseCoordiante(cellIdentity));
-        if(cell!=null){
-            System.out.println("Original value: " + cell.getOriginalValue());
-            System.out.println("Effective value: " + cell.getEffectiveValue());
-            System.out.println("Last version changed: " + cell.getLastVersion());
-            System.out.println("depend on:");
-            cell.printDependsOn();
-            System.out.println("influencing on:");
-            cell.printInfluencingOn();
-        }
-        else{
-            System.out.println("Cell " +cellIdentity+ " is Empty");
-        }
-
-    }
-
-    @Override
     public void displayVersions() {
         //show previos version
     }
@@ -217,6 +197,7 @@ public class SheetImpl implements Sheet {
 
 
     }
+
     public void updateInfluencingCells(Cell cell) {
         List<Cell> influencedCellsCopy = new ArrayList<>(cell.getInfluencingOn());
 
@@ -303,6 +284,10 @@ public class SheetImpl implements Sheet {
     public void resetCell(Cell cell) {
         cell = cell.getPreviousVal();
         cell.cancelDependencies();
+    }
+
+    public void LoadSheet(String filename) {
+
     }
 
 }

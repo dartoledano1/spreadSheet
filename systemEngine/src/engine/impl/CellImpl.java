@@ -2,7 +2,8 @@ package engine.impl;
 
 import engine.api.Cell;
 import engine.api.Coordinate;
-import engine.api.Sheet;
+import engine.api.SheetReader;
+import engine.api.SheetWriter;
 import engine.sheetFunctions.Expression;
 import engine.sheetFunctions.FunctionParser;
 
@@ -93,16 +94,14 @@ public class CellImpl implements Cell {
         this.effectiveValue = effectiveValue;
     }
 
-    public void calcEffectiveValue(Sheet sheet) {
+    public void calcEffectiveValue(SheetWriter sheet) {
         Expression expression = FunctionParser.parseExpression(originalValue, sheet, this);
-        try {
+
             if (expression == null) {
                 throw new NullPointerException("Expression is not set for this cell.");
             }
             this.effectiveValue = expression.eval().getValue();
-        } catch (NullPointerException e) {
 
-        }
 
     }
     public void printDependsOn(){
@@ -123,6 +122,23 @@ public class CellImpl implements Cell {
             dependsOnCell.getInfluencingOn().remove(this);
         }
         this.getDependsOn().clear();
+    }
+    @Override
+    public void displaySingleCell() {
+        System.out.println("-Cell " + this.getName() + " info-");
+        if(this!=null){
+            System.out.println("Original value: " + this.getOriginalValue());
+            System.out.println("Effective value: " + this.getEffectiveValue());
+            System.out.println("Last version changed: " + this.getLastVersion());
+            System.out.println("depend on:");
+            this.printDependsOn();
+            System.out.println("influencing on:");
+            this.printInfluencingOn();
+        }
+        else{
+            System.out.println("Cell " +this.getName()+ " is Empty");
+        }
+
     }
 
 

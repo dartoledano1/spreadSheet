@@ -5,40 +5,44 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface Sheet {
+public interface SheetWriter {
 
+    //sheet reader functions
     Map<Coordinate, Cell> getSheet();
     int getVersion();
     String getSheetName();
-    List<SheetVersion> getVersionHistory();
+    List<VersionsHandler> getVersionHistory();
     int getNumOfRows();
     int getNumOfCols();
     Cell getCell(String cell);
 
+    //set functions
     void setSheet(Map<Coordinate, Cell> sheet);
     void setVersion(int version);
     void setSheetName(String sheetName);
     void setNumOfRows(int numOfRows);
     void setNumOfCols(int numOfCols);
+    void setCell(String cell, String originalValue);
 
+    //changes cell identity to col and row coordinate
     Coordinate parseCoordiante(String s);
 
+    //file and versions related functions
     void saveVersion();
     File loadFromFile(String filename);
     void saveToFile(String filename, File file);
+    boolean isValidSheet();
+    void displayVersions();
+
+    //print sheet functions
     void printSheet();
-    Map<Integer, Integer> calculateMaxColWidths();
     String padRight(String s, int length);
     String padLeft(String s, int length);
-    boolean isValidSheet();
-    void displaySingleCell(String cellIdentity);
-    void displayVersions();
-    void setCell(String cell, String originalValue);
-    boolean checkIfValidCell(String s);
-    String getColumnLetter(int columnNumber);
+    Map<Integer, Integer> calculateMaxColWidths();
+
+   //update cell functions
     Boolean hasCycle(Cell cell, Set<Cell> visited, Set<Cell> recursionStack , Cell sourceCell);
     void resetCell(Cell cell);
-
     boolean updateCell(String cellIdentity,String value);
     void updateInfluencingCells(Cell cell);
 }

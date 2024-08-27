@@ -5,10 +5,14 @@ import java.io.File;
 
 public class EngineImpl implements Engine {
 
-    private Sheet sheet;
+    private SheetReader sheetReader;
+    private SheetWriter sheetWriter;
+    private VersionsHandler versionsHandler;
 
-    public EngineImpl(Sheet sheet) {
-        this.sheet=sheet;
+
+    public EngineImpl(SheetImpl sheet) {
+        this.sheetReader=sheet;
+        this.sheetWriter=sheet;
     }
     @Override
     public File loadFromFile(String filename) {
@@ -17,46 +21,46 @@ public class EngineImpl implements Engine {
     }
     @Override
     public void printSheet() {
-        sheet.printSheet();
+        sheetReader.printSheet();
     }
     @Override
     public void displaySingleCell(String cellIdentity){
-        sheet.displaySingleCell(cellIdentity);
+
+        Cell cell = sheetReader.getCell(cellIdentity);
+        if (cell != null) {
+            cell.displaySingleCell();
+        }
 
     }
     @Override
     public boolean checkIfValidCell(String s){
-        return sheet.checkIfValidCell(s);
+        return sheetReader.checkIfValidCell(s);
     }
     @Override
     public boolean updateCell(String cellIdentity,String value){
-       return sheet.updateCell(cellIdentity,value);
+       return sheetWriter.updateCell(cellIdentity,value);
     }
 
     @Override
-    public void updateInfluencingCells(Cell cell, Sheet sheet){
-        sheet.updateInfluencingCells(cell);
-    }
-    @Override
     public Cell getCell(String cell){
-        return sheet.getCell(cell);
+        return sheetReader.getCell(cell);
     }
     @Override
     public void resetCell(Cell cell){
-        sheet.resetCell(cell);
+        sheetWriter.resetCell(cell);
     }
     @Override
     public void displayVersions(){
-        sheet.displayVersions();
+        versionsHandler.displayVersions();
     }
     public int getNumOfRows(){
-        return sheet.getNumOfRows();
+        return sheetReader.getNumOfRows();
     }
     public int getNumOfCols(){
-        return sheet.getNumOfCols();
+        return sheetReader.getNumOfCols();
     }
     public String getColumnLetter(int columnNumber){
-        return sheet.getColumnLetter(columnNumber);
+        return sheetReader.getColumnLetter(columnNumber);
     }
 
 }

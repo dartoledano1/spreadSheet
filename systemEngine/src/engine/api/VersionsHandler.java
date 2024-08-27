@@ -1,8 +1,7 @@
 package engine.api;
-
 import java.util.Map;
 
-public interface SheetVersion {
+public interface VersionsHandler {
     int getVersionNumber();
     Map<Coordinate, Cell> getSheetState();
     void setVersionNumber(int version);
