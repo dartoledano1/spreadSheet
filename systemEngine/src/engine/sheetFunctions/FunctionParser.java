@@ -320,8 +320,8 @@ import java.util.Stack;
 
                 int column = args.get(0).trim().charAt(0) - 'A' + 1;
                 try {
-                    if (column < 1 || column > sheet.getNumOfCols())
-                        throw new IllegalArgumentException("Invalid argument for REF, expected a column between 1 and " + sheet.getNumOfCols() + " and got " + column);
+                    if (column < 1 || column > sheet.getSheetLayout().getNumOfCols())
+                        throw new IllegalArgumentException("Invalid argument for REF, expected a column between 1 and " + sheet.getSheetLayout().getNumOfCols() + " and got " + column);
                 }catch (IllegalArgumentException e) {
                     System.out.println("Error: " + e.getMessage());
                     return null;
@@ -334,8 +334,8 @@ import java.util.Stack;
                     throw new IllegalArgumentException("Invalid argument for REF, expected a number as rows and got " + args.get(0).trim().substring(1));
                 }
 
-                if(row < 1 || row > sheet.getNumOfCols())
-                    throw new IllegalArgumentException("Invalid argument for REF, expected a row between 1 and " + sheet.getNumOfRows() + " and got " + row);
+                if(row < 1 || row > sheet.getSheetLayout().getNumOfRows())
+                    throw new IllegalArgumentException("Invalid argument for REF, expected a row between 1 and " + sheet.getSheetLayout().getNumOfRows() + " and got " + row);
 
 
                 return new REFExpression(args.get(0).trim() , sheet, cell);

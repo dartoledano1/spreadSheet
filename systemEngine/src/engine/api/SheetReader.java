@@ -8,8 +8,7 @@ public interface SheetReader {
     int getVersion();
     String getSheetName();
     List<VersionsHandler> getVersionHistory();
-    int getNumOfRows();
-    int getNumOfCols();
+    public SheetLayout getSheetLayout();
     Cell getCell(String cell);
     void printSheet();
     boolean checkIfValidCell(String s);

@@ -12,16 +12,13 @@ public interface SheetWriter {
     int getVersion();
     String getSheetName();
     List<VersionsHandler> getVersionHistory();
-    int getNumOfRows();
-    int getNumOfCols();
     Cell getCell(String cell);
+    SheetLayout getSheetLayout();
 
     //set functions
     void setSheet(Map<Coordinate, Cell> sheet);
     void setVersion(int version);
     void setSheetName(String sheetName);
-    void setNumOfRows(int numOfRows);
-    void setNumOfCols(int numOfCols);
     void setCell(String cell, String originalValue);
 
     //changes cell identity to col and row coordinate
@@ -45,4 +42,5 @@ public interface SheetWriter {
     void resetCell(Cell cell);
     boolean updateCell(String cellIdentity,String value);
     void updateInfluencingCells(Cell cell);
+
 }

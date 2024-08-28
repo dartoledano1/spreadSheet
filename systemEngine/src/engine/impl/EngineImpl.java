@@ -54,10 +54,10 @@ public class EngineImpl implements Engine {
         versionsHandler.displayVersions();
     }
     public int getNumOfRows(){
-        return sheetReader.getNumOfRows();
+        return sheetReader.getSheetLayout().getNumOfRows();
     }
     public int getNumOfCols(){
-        return sheetReader.getNumOfCols();
+        return sheetReader.getSheetLayout().getNumOfCols();
     }
     public String getColumnLetter(int columnNumber){
         return sheetReader.getColumnLetter(columnNumber);

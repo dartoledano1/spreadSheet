@@ -9,30 +9,19 @@ public class SheetImpl implements SheetReader,SheetWriter {
     private String sheetName = "example";
     private int version;
     private List<VersionsHandler> versionHistory;
-    private int numOfCols;
-    private int numOfRows;
-    private int[] columnsWidths;
+    SheetLayout layout;
 
-    public SheetImpl(String sheetName, int numRows, int numCols) {
+    public SheetImpl(String sheetName, int numRows, int numCols , int[] colsWidth, int[]rowsHeight) {
         this.sheetMap = new HashMap<>(); // Initialize the map
         this.sheetName = sheetName;
         this.version = 1; // do it as constance ;
         this.versionHistory = new ArrayList<>();
-        this.numOfCols = numCols; // get from file
-        this.numOfRows = numRows; // ger from file
-        this.columnsWidths = new int[numOfCols];
+        this.layout = new SheetLayoutImp(numRows, numCols, colsWidth, rowsHeight);
     }
-
     @Override
-    public int getNumOfRows() {
-        return numOfRows;
+    public SheetLayout getSheetLayout(){
+        return this.layout;
     }
-
-    @Override
-    public int getNumOfCols() {
-        return numOfCols;
-    }
-
     @Override
     public Map<Coordinate, Cell> getSheet() {
         return sheetMap;
@@ -72,16 +61,6 @@ public class SheetImpl implements SheetReader,SheetWriter {
     @Override
     public void setVersion(int version) {
         this.version = version;
-    }
-
-    @Override
-    public void setNumOfRows(int numOfRows) {
-        this.numOfRows = numOfRows;
-    }
-
-    @Override
-    public void setNumOfCols(int numOfCols) {
-        this.numOfCols = numOfCols;
     }
 
     @Override
@@ -129,16 +108,16 @@ public class SheetImpl implements SheetReader,SheetWriter {
 
         // Print column headers
         System.out.print("   ");
-        for (int col = 1; col <= numOfCols; col++) {
+        for (int col = 1; col <= layout.getNumOfCols(); col++) {
             System.out.print(padRight(Character.toString((char) ('A' + col - 1)), maxColWidths.get(col)) + "|");
         }
         System.out.println();
 
         // Print rows
-        for (int row = 1; row <= numOfRows; row++) {
+        for (int row = 1; row <= layout.getNumOfRows(); row++) {
             System.out.print(padLeft(Integer.toString(row), 2) + " ");
 
-            for (int col = 1; col <= numOfCols; col++) {
+            for (int col = 1; col <= layout.getNumOfCols(); col++) {
                 CoordinateImpl coordinate = new CoordinateImpl(row, col);
                 Cell cell = sheetMap.get(coordinate);
                 Object cellEffectiveValue = (cell != null) ? cell.getEffectiveValue() : " ";
@@ -210,12 +189,12 @@ public class SheetImpl implements SheetReader,SheetWriter {
     public Map<Integer, Integer> calculateMaxColWidths() {
         Map<Integer, Integer> maxColWidths = new HashMap<>();
 
-        for (int col = 1; col <= numOfCols; col++) {
+        for (int col = 1; col <= layout.getNumOfCols(); col++) {
             maxColWidths.put(col, 1);
         }
 
-        for (int row = 1; row <= numOfRows; row++) {
-            for (int col = 1; col <= numOfCols; col++) {
+        for (int row = 1; row <= layout.getNumOfRows(); row++) {
+            for (int col = 1; col <= layout.getNumOfCols(); col++) {
                 CoordinateImpl coordinate = new CoordinateImpl(row, col);
                 Cell cell = sheetMap.get(coordinate);
                 String cellValue = (cell != null) ? cell.getEffectiveValue().toString() : " ";
@@ -230,12 +209,12 @@ public class SheetImpl implements SheetReader,SheetWriter {
         try{
             int row = s.charAt(0) - 'A' + 1;
             int col = Integer.parseInt(s.substring(1));
-            String rowLetter = String.valueOf(numOfRows + 'A');
+            String rowLetter = String.valueOf(layout.getNumOfRows() + 'A');
 
-            if (row > numOfRows || row < 1) {
+            if (row > layout.getNumOfRows() || row < 1) {
                 throw new NumberFormatException();
             }
-            if (col > numOfCols || col < 1) {
+            if (col > layout.getNumOfCols() || col < 1) {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException e) {
