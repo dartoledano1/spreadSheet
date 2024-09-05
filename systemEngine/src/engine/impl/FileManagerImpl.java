@@ -4,6 +4,8 @@ import engine.api.SheetWriter;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
+import jaxb.generated.STLSheet;
+
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
@@ -11,20 +13,13 @@ import java.io.File;
 
 public class FileManagerImpl implements FileManager {
 
-    public SheetImpl loadFile(String xmlFilePath) throws JAXBException {
+    public STLSheet loadXMLFile(String xmlFilePath) throws JAXBException {
 
-        try {
+        JAXBContext jaxbContext = JAXBContext.newInstance(STLSheet.class);
+        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+        File file = new File(xmlFilePath);
 
-            File file = new File(xmlFilePath);
-            JAXBContext jaxbContext = JAXBContext.newInstance(SheetImpl.class);
-
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            return (SheetImpl) jaxbUnmarshaller.unmarshal(file);
-
-
-        } catch (JAXBException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return (STLSheet) jaxbUnmarshaller.unmarshal(file);
     }
+
 }

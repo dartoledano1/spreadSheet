@@ -1,9 +1,10 @@
 package engine.impl;
 import engine.api.Coordinate;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class CoordinateImpl implements Coordinate {
+public class CoordinateImpl implements Coordinate{
     private int row;
     private int col;
 

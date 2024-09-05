@@ -5,10 +5,10 @@ import engine.api.SheetLayout;
 public class SheetLayoutImp implements SheetLayout {
     private int numOfCols;
     private int numOfRows;
-    private int[] colsWidth;
-    private int[] rowsHeights;
+    private int colsWidth;
+    private int rowsHeights;
 
-    public SheetLayoutImp(int numOfCols, int numOfRows, int[] colsWidth, int[] rowsHeights) {
+    public SheetLayoutImp(int numOfRows, int numOfCols, int colsWidth, int rowsHeights) {
         this.numOfCols = numOfCols;
         this.numOfRows = numOfRows;
         this.colsWidth = colsWidth;
@@ -24,11 +24,11 @@ public class SheetLayoutImp implements SheetLayout {
     }
 
     @Override
-    public int[] getColsWidth(){
+    public int getColsWidth(){
         return colsWidth;
     }
     @Override
-    public int[] getRowsHeight(){
+    public int getRowsHeight(){
         return rowsHeights;
     }
 
@@ -41,5 +41,14 @@ public class SheetLayoutImp implements SheetLayout {
         this.numOfCols = numOfCols;
     }
 
-
+    public SheetLayoutDTO toDTO(){
+        return new SheetLayoutDTO(this.numOfRows, this.numOfCols, this.colsWidth, this.rowsHeights);
+    }
+    public SheetLayoutImp fromDTO(SheetLayoutDTO dto){
+        this.numOfCols = dto.getNumOfCols();
+        this.numOfRows = dto.getNumOfRows();
+        this.colsWidth = dto.getColsWidth();
+        this.rowsHeights = dto.getRowsHeights();
+        return this;
+    }
 }

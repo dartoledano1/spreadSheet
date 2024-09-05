@@ -1,5 +1,5 @@
 package engine.value;
 
 public enum CellType {
-    NUMERIC, BOOLEAN, STRING;
+    NUMERIC, BOOLEAN, STRING, UNDEFINED;
 }

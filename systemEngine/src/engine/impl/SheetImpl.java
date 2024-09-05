@@ -1,27 +1,55 @@
 package engine.impl;
 import engine.api.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import javax.xml.*;
 
 public class SheetImpl implements SheetReader,SheetWriter {
-    private Map<Coordinate, Cell> sheetMap;
-    private String sheetName = "example";
-    private int version;
-    private List<VersionsHandler> versionHistory;
-    SheetLayout layout;
 
-    public SheetImpl(String sheetName, int numRows, int numCols , int[] colsWidth, int[]rowsHeight) {
-        this.sheetMap = new HashMap<>(); // Initialize the map
+    private Map<Coordinate, Cell> sheetMap;
+    private String sheetName;
+    private int version;
+    private SheetLayout layout;
+    private List<Integer> changedCellInVersion = new ArrayList<>();
+    private List<SheetDTO> versionHistory;
+
+    public SheetImpl(String sheetName, int numRows, int numCols, int colsWidth, int rowsHeight) {
+        this.sheetMap = new HashMap<>();
         this.sheetName = sheetName;
-        this.version = 1; // do it as constance ;
-        this.versionHistory = new ArrayList<>();
+        this.version = 1;
         this.layout = new SheetLayoutImp(numRows, numCols, colsWidth, rowsHeight);
+        this.versionHistory = new ArrayList<>();
+        this.versionHistory.add(this.toDTO());
+    }
+    public SheetImpl(SheetImpl other) {
+        if(this!=other) {
+            this.sheetMap = new HashMap<>(other.sheetMap);
+            this.sheetName = sheetName;
+            this.version = other.version;
+            this.layout = new SheetLayoutImp(other.getSheetLayout().getNumOfRows()
+                    , other.getSheetLayout().getNumOfCols()
+                    , other.getSheetLayout().getColsWidth()
+                    , other.getSheetLayout().getRowsHeight());
+            this.versionHistory = new ArrayList<>(other.versionHistory);
+        }
+    }
+
+    @Override
+    public List<Integer> getChangedCellInVersion(){
+        return changedCellInVersion;
     }
     @Override
-    public SheetLayout getSheetLayout(){
+    public List<SheetDTO> getVersionHistory() {
+        return versionHistory;
+    }
+
+    @Override
+    public SheetLayout getSheetLayout() {
         return this.layout;
     }
+
     @Override
     public Map<Coordinate, Cell> getSheet() {
         return sheetMap;
@@ -38,15 +66,19 @@ public class SheetImpl implements SheetReader,SheetWriter {
     }
 
     @Override
-    public List<VersionsHandler> getVersionHistory() {
-        return versionHistory;
-    }
-
-    @Override
     public Cell getCell(String cell) {
         return sheetMap.get(parseCoordiante(cell));
     }
 
+    @Override
+    public List<Integer> getChangedCellCount() {
+        return changedCellInVersion;
+    }
+
+    @Override
+    public void setVersionHistory(List<SheetDTO> versionHistory) {
+        this.versionHistory = versionHistory;
+    }
 
     @Override
     public void setSheetName(String sheetName) {
@@ -67,19 +99,17 @@ public class SheetImpl implements SheetReader,SheetWriter {
     public void setCell(String cell, String originalValue) {
         Coordinate newCoordinate = parseCoordiante(cell);
         if (!sheetMap.containsKey(newCoordinate)) {
-            Cell newCell = new CellImpl(newCoordinate.getRow(), newCoordinate.getColumn(), originalValue, 1,cell);
+            Cell newCell = new CellImpl(newCoordinate.getRow(), newCoordinate.getColumn(), originalValue, 1, cell);
             sheetMap.put(newCoordinate, newCell);
         } else {
-            sheetMap.get(newCoordinate).setPreviousVal(sheetMap.get(newCoordinate));
+            sheetMap.get(newCoordinate).setPreviousVal((CellImpl) sheetMap.get(newCoordinate));
             sheetMap.get(newCoordinate).setOriginalValue(originalValue);
         }
     }
 
     @Override
-    public void saveVersion() {
-        SheetVersionImpl newVersion = new SheetVersionImpl(version, sheetMap);
-        versionHistory.add(newVersion);
-        version++;
+    public void setChangedCell(List<Integer> changedCellCount) {
+        changedCellInVersion = changedCellCount;
     }
 
     @Override
@@ -89,137 +119,83 @@ public class SheetImpl implements SheetReader,SheetWriter {
     }
 
     @Override
-    public File loadFromFile(String filename) {
-        return null;
-        //impl
-    }
-
-    @Override
-    public void saveToFile(String filename, File file) {
-        //impl
-    }
-
-    @Override
-    public void printSheet() {
-        System.out.println("Sheet Name: " + sheetName);
-        System.out.println("Version: " + version);
-
-        Map<Integer, Integer> maxColWidths = calculateMaxColWidths();
-
-        // Print column headers
-        System.out.print("   ");
-        for (int col = 1; col <= layout.getNumOfCols(); col++) {
-            System.out.print(padRight(Character.toString((char) ('A' + col - 1)), maxColWidths.get(col)) + "|");
-        }
-        System.out.println();
-
-        // Print rows
-        for (int row = 1; row <= layout.getNumOfRows(); row++) {
-            System.out.print(padLeft(Integer.toString(row), 2) + " ");
-
-            for (int col = 1; col <= layout.getNumOfCols(); col++) {
-                CoordinateImpl coordinate = new CoordinateImpl(row, col);
-                Cell cell = sheetMap.get(coordinate);
-                Object cellEffectiveValue = (cell != null) ? cell.getEffectiveValue() : " ";
-                System.out.print(padRight(cellEffectiveValue.toString(), maxColWidths.get(col)) + "|");
-            }
-            System.out.println();
-        }
-    }
-
-    @Override
-    public String padRight(String s, int length) {
-        return String.format("%-" + length + "s", s);
-    }
-
-    @Override
-    public String padLeft(String s, int length) {
-        return String.format("%" + length + "s", s);
-    }
-
-    @Override
-    public void displayVersions() {
-        //show previos version
-    }
-
-    @Override
     public Coordinate parseCoordiante(String cell) {
-        int row = cell.charAt(0) - 'A' + 1;
-        int col = Integer.parseInt(cell.substring(1));
+        int col = cell.charAt(0) - 'A' + 1;
+        int row = Integer.parseInt(cell.substring(1));
         return new CoordinateImpl(row, col);
     }
 
-    public boolean updateCell(String cellIdentity, String value){
+    public void updateCell(String cellIdentity, String value) {
+
         Cell cell = getCell(cellIdentity);
-        if (cell != null){
-            cell.updatePreviousVal();
+        Cell cellCopy = null;
+        int changedCells = 0;
+        if (cell != null) {
+            cellCopy = new CellImpl((CellImpl) cell);
         }
-        setCell(cellIdentity, value);
-        cell = getCell(cellIdentity);
+        try {
+            setCell(cellIdentity, value);
+            cell = getCell(cellIdentity);
+            cell.updatePreviousVal();
+            cell.calcEffectiveValue(this);
+            Set<Cell> visited = new HashSet<>();
+            Set<Cell> recursionStack = new HashSet<>();
+            if (hasCycle(cell, visited, recursionStack, cell)) {
+                throw new IllegalStateException("Circular dependency detected involving cell " + cellIdentity);
+            } else {
+                changedCells = updateInfluencingCells(cell, changedCells);
+                changedCellInVersion.add(changedCells+1);
+                cell.setLastVersion(cell.getLastVersion() + 1);
+            }
 
-
-                cell.calcEffectiveValue(this);
-                Set<Cell> visited = new HashSet<>();
-                Set<Cell> recursionStack = new HashSet<>();
-                if (hasCycle(cell, visited, recursionStack ,cell)) {
-                    resetCell(cell);
-                    throw new IllegalStateException("Circular dependency detected involving cell " + cellIdentity);
-                }
-                else {
-                    updateInfluencingCells(cell);
-                    cell.setLastVersion(version);
-                    this.version++;
-                    return true;
-                }
-
-
-
-
+        } catch (Exception e) {
+            if (cellCopy != null) {
+                cell.copyCell((CellImpl) cellCopy);
+                updateInfluencingCells(cell, changedCells);
+            }
+            else{
+                cell.setEffectiveValue(" ");
+                cell.setOriginalValue(" ");
+            }
+            throw e;
+        }
     }
 
-    public void updateInfluencingCells(Cell cell) {
+    public int updateInfluencingCells(Cell cell, int changedCellCount) {
         List<Cell> influencedCellsCopy = new ArrayList<>(cell.getInfluencingOn());
 
         for (Cell influencedCell : influencedCellsCopy) {
-            influencedCell.calcEffectiveValue(this);
-            influencedCell.setLastVersion(version);
-            updateInfluencingCells(influencedCell); // Recursively update influenced cells
-        }
-    }
-    public Map<Integer, Integer> calculateMaxColWidths() {
-        Map<Integer, Integer> maxColWidths = new HashMap<>();
-
-        for (int col = 1; col <= layout.getNumOfCols(); col++) {
-            maxColWidths.put(col, 1);
-        }
-
-        for (int row = 1; row <= layout.getNumOfRows(); row++) {
-            for (int col = 1; col <= layout.getNumOfCols(); col++) {
-                CoordinateImpl coordinate = new CoordinateImpl(row, col);
-                Cell cell = sheetMap.get(coordinate);
-                String cellValue = (cell != null) ? cell.getEffectiveValue().toString() : " ";
-                maxColWidths.put(col, Math.max(maxColWidths.get(col), cellValue.length()));
+            try {
+                influencedCell.calcEffectiveValue(this);
+                influencedCell.setLastVersion(version);
+                changedCellCount++;
+                updateInfluencingCells(influencedCell, changedCellCount);
+            } catch (Exception e) {
+                influencedCell.setCellToUndefined();
+                influencedCell.cancelDependencies();
+                throw new IllegalArgumentException("Cell" + influencedCell.getName()+ "is now undefined");
             }
         }
-
-        return maxColWidths;
+        return changedCellCount;
     }
 
     public boolean checkIfValidCell(String s) {
-        try{
-            int row = s.charAt(0) - 'A' + 1;
-            int col = Integer.parseInt(s.substring(1));
-            String rowLetter = String.valueOf(layout.getNumOfRows() + 'A');
-
-            if (row > layout.getNumOfRows() || row < 1) {
-                throw new NumberFormatException();
-            }
-            if (col > layout.getNumOfCols() || col < 1) {
-                throw new NumberFormatException();
-            }
-        } catch (NumberFormatException e) {
+        s = s.toUpperCase();
+        if(s.length() > 2 ){
             return false;
         }
+        int col = s.charAt(0) - 'A' + 1;
+        int row = Integer.parseInt(s.substring(1));
+        String rowLetter = String.valueOf(layout.getNumOfRows() + 'A');
+
+        if (row > layout.getNumOfRows() || row < 1) {
+            return false;
+        }
+        if (col > layout.getNumOfCols() || col < 1) {
+            return false;
+        }
+
+
         return true;
     }
 
@@ -235,9 +211,10 @@ public class SheetImpl implements SheetReader,SheetWriter {
 
         return columnLetter.toString();
     }
-    public Boolean hasCycle(Cell cell, Set<Cell> visited, Set<Cell> recursionStack , Cell depend) {
+
+    public Boolean hasCycle(Cell cell, Set<Cell> visited, Set<Cell> recursionStack, Cell depend) {
         if (recursionStack.contains(cell)) {
-            removeCircularDependency(cell,depend);
+            removeCircularDependency(cell, depend);
             return true;
         }
         if (visited.contains(cell)) {
@@ -256,17 +233,44 @@ public class SheetImpl implements SheetReader,SheetWriter {
         recursionStack.remove(cell);
         return false;
     }
+
     public void removeCircularDependency(Cell source, Cell ref) {
         source.getDependsOn().remove(ref);
         ref.getInfluencingOn().remove(source);
     }
+
     public void resetCell(Cell cell) {
         cell = cell.getPreviousVal();
         cell.cancelDependencies();
     }
 
-    public void LoadSheet(String filename) {
 
+    public SheetDTO toDTO() {
+        Map<Coordinate, Cell> sheetMapCopy = new HashMap<>();
+        if(!sheetMap.isEmpty()) {
+            for (Map.Entry<Coordinate, Cell> entry : sheetMap.entrySet()) {
+                sheetMapCopy.put(entry.getKey(), new CellImpl((CellImpl) entry.getValue())); // Deep copy of each Cell
+            }
+        }
+        List<Integer> changedCellInVersionCopy = new ArrayList<>(this.changedCellInVersion);
+
+        return new SheetDTO(sheetMapCopy, this.sheetName, this.version, this.layout, changedCellInVersionCopy);
+    }
+
+    public void fromDTO(SheetDTO dto) {
+        this.sheetName = dto.getSheetName();
+        this.version = dto.getVersion();
+        this.sheetMap = new HashMap<>();
+        for (Map.Entry<Coordinate, Cell> entry : dto.getSheetMap().entrySet()) {
+            this.sheetMap.put(entry.getKey(), new CellImpl((CellImpl) entry.getValue())); // Deep copy of each Cell
+        }
+        this.changedCellInVersion = new ArrayList<>(dto.getChangedCellInVersion());
+        this.layout = dto.getLayout(); // Deep copy if necessary
+    }
+
+
+    public void setCellToUndefined(Cell cell) {
+        cell.setCellToUndefined();
     }
 
 }

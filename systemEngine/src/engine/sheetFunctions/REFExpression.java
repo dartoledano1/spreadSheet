@@ -13,12 +13,12 @@ public class REFExpression implements Expression {
     private Cell currentCell;
 
     public REFExpression(String ref, SheetWriter sheet, Cell currentCell) {
-        this.ref = ref;
+        this.ref = ref.toUpperCase();
         this.sheet = sheet;
-        if(sheet.getCell(ref) == null){
+        if(sheet.getCell(ref.toUpperCase()) == null){
             addEmptyCell();
         }
-        this.REFCell = sheet.getCell(ref);
+        this.REFCell = sheet.getCell(ref.toUpperCase());
         this.currentCell = currentCell;
     }
 

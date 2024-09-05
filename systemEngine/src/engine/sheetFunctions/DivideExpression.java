@@ -24,7 +24,7 @@ public class DivideExpression implements Expression {
         if (rightValue == 0) {
             throw new ArithmeticException("Cannot divide by zero");
         } else {
-            double result = LeftValue.extractValueWithExpectation(Double.class) + RightValue.extractValueWithExpectation(Double.class);
+            double result = LeftValue.extractValueWithExpectation(Double.class) / RightValue.extractValueWithExpectation(Double.class);
             return new EffectiveValueImpl(CellType.NUMERIC, result);
         }
     }

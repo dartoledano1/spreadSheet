@@ -1,7 +1,8 @@
 package engine.api;
 import engine.impl.SheetImpl;
 import jakarta.xml.bind.JAXBException;
+import jaxb.generated.STLSheet;
 
 public interface FileManager {
-    SheetImpl loadFile(String XmlFilePath) throws JAXBException;
+    STLSheet loadXMLFile(String XmlFilePath) throws JAXBException;
 }

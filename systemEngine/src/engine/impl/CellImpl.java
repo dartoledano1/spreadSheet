@@ -2,25 +2,27 @@ package engine.impl;
 
 import engine.api.Cell;
 import engine.api.Coordinate;
-import engine.api.SheetReader;
 import engine.api.SheetWriter;
 import engine.sheetFunctions.Expression;
 import engine.sheetFunctions.FunctionParser;
+import engine.value.CellType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CellImpl implements Cell {
-    String originalValue ;
-    Object effectiveValue ;
+public class CellImpl implements Cell, Serializable {
+    String originalValue = " " ;
+    Object effectiveValue = " ";
     int lastVersionChange;
     Coordinate coordinate;
     private Set<Cell> dependsOn;
     private Set<Cell> influencingOn;
-    private Cell previousVal;
+    private CellImpl previousVal;
     private String cellName;
+    private CellType cellType;
 
     public CellImpl(int row, int col, String originalValue, int lastVersionChange,String cellName) {
         this.originalValue = originalValue;
@@ -28,49 +30,67 @@ public class CellImpl implements Cell {
         this.coordinate = new CoordinateImpl(row, col);
         this.dependsOn = new HashSet<Cell>();
         this.influencingOn = new HashSet<Cell>();
-        this.cellName = cellName;
+        this.cellName = cellName.toUpperCase();
         this.previousVal = this;
     }
+
+    public CellImpl(CellImpl other) {
+        if(this!=other) {
+            this.originalValue = other.originalValue;
+            this.effectiveValue = other.effectiveValue; // Assuming this is immutable, otherwise, copy it as needed
+            this.lastVersionChange = other.lastVersionChange;
+            this.coordinate = new CoordinateImpl(other.coordinate.getRow(), other.getCoordinate().getColumn()); // Assuming CoordinateImpl has a copy constructor
+            this.dependsOn = new HashSet<>();
+            this.cellName = other.cellName;
+            this.cellType =  other.cellType;
+        }
+    }
     public void updatePreviousVal(){
-        previousVal.setOriginalValue(originalValue);
-        previousVal.setLastVersion(lastVersionChange);
-        previousVal.setEffectiveValue(effectiveValue);
+        this.previousVal = new CellImpl(this);
+    }
+
+
+    public CellType getCellType() {
+        return cellType;
     }
 
     @Override
     public String getName() {
-        return this.cellName;
+        return this.cellName.toUpperCase();
     }
-
     @Override
-    public Cell getPreviousVal(){
+    public CellImpl getPreviousVal(){
         return previousVal;
     }
+    @Override
     public Set<Cell> getInfluencingOn() {
         return this.influencingOn;
     }
+    @Override
     public Set<Cell> getDependsOn() {
         return this.dependsOn;
     }
-
+    @Override
     public Object getEffectiveValue() {
         return this.effectiveValue;
     }
-
+    @Override
     public String getOriginalValue() {
         return this.originalValue;
     }
-
+    @Override
     public int getLastVersion() {
         return this.lastVersionChange;
     }
+    @Override
+    public Coordinate getCoordinate() {return this.coordinate;}
 
     @Override
     public void setName(String name) {
         this.cellName = name;
     }
     @Override
-    public void setPreviousVal(Cell previousVal) {
+    public void setPreviousVal(CellImpl previousVal) {
         this.previousVal = previousVal;
     }
     @Override
@@ -81,40 +101,55 @@ public class CellImpl implements Cell {
     public void setInfluencingOn(Set<Cell> influencingOn) {
         this.influencingOn = influencingOn;
     }
-
+    @Override
     public void setLastVersion(int lastVersion) {
         this.lastVersionChange = lastVersion;
     }
-
+    @Override
     public void setOriginalValue(String originalValue) {
         this.originalValue = originalValue;
     }
 
+    public void setCellType(CellType cellType) {
+        this.cellType = cellType;
+    }
+
+    @Override
     public void setEffectiveValue(Object effectiveValue) {
         this.effectiveValue = effectiveValue;
     }
+    @Override
+    public boolean calcEffectiveValue(SheetWriter sheet) {
 
-    public void calcEffectiveValue(SheetWriter sheet) {
         Expression expression = FunctionParser.parseExpression(originalValue, sheet, this);
-
-            if (expression == null) {
-                throw new NullPointerException("Expression is not set for this cell.");
-            }
+        if(expression == null){
+            return false;
+        }
+        else {
             this.effectiveValue = expression.eval().getValue();
-
-
-    }
-    public void printDependsOn(){
-        for (Cell cell : dependsOn) {
-            System.out.println((cell.getName()));
+            if(this.effectiveValue instanceof String){
+                this.cellType = CellType.STRING;
+            }
+            else if(this.effectiveValue instanceof Integer){
+                this.cellType =  CellType.NUMERIC;
+            }
+            else if(this.effectiveValue instanceof Double){
+                this.cellType =  CellType.NUMERIC;
+            }
+            else if(this.effectiveValue instanceof Boolean){
+                this.cellType =  CellType.BOOLEAN;
+            }
+            this.cellType =  CellType.NUMERIC;
+            return true;
         }
 
     }
-    public void printInfluencingOn(){
-        for(Cell cell:this.influencingOn){
-            System.out.println(cell.getName());
-        }
+    public void copyCell(CellImpl other){
+        this.originalValue = other.originalValue;
+        this.effectiveValue = other.effectiveValue; // Assuming this is immutable, otherwise, copy it as needed
+        this.lastVersionChange = other.lastVersionChange;
     }
+    @Override
     public void cancelDependencies(){
         List<Cell> dependsOnCellsCopy = new ArrayList<>(this.getDependsOn());
 
@@ -122,25 +157,31 @@ public class CellImpl implements Cell {
             dependsOnCell.getInfluencingOn().remove(this);
         }
         this.getDependsOn().clear();
+
     }
-    @Override
-    public void displaySingleCell() {
-        System.out.println("-Cell " + this.getName() + " info-");
-        if(this!=null){
-            System.out.println("Original value: " + this.getOriginalValue());
-            System.out.println("Effective value: " + this.getEffectiveValue());
-            System.out.println("Last version changed: " + this.getLastVersion());
-            System.out.println("depend on:");
-            this.printDependsOn();
-            System.out.println("influencing on:");
-            this.printInfluencingOn();
-        }
-        else{
-            System.out.println("Cell " +this.getName()+ " is Empty");
-        }
+    public CellDTO toDTO() {
+        CoordinateDTO coordinateDTO = new CoordinateDTO(this.coordinate.getRow(), this.coordinate.getColumn());
+        return new CellDTO(this.originalValue,
+                this.effectiveValue,
+                this.lastVersionChange,
+                coordinateDTO,
+                this.dependsOn,
+                this.influencingOn,
+                this.previousVal,
+                this.cellName);
 
     }
 
-
+    public CellImpl fromDTO(CellDTO dto) {
+        return new CellImpl(dto.getCoordinate().getRow(),
+                dto.getCoordinate().getCol(),
+                dto.getOriginalValue(),
+                dto.getLastVersionChange(),
+                dto.getCellName());
+    }
+    public void setCellToUndefined(){
+        this.originalValue = "Undefined";
+        this.effectiveValue = "Undefined";
+    }
 }
 

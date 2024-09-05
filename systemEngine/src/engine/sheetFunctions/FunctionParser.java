@@ -28,6 +28,10 @@ import java.util.Stack;
                 {
                     return new IndendityExpression(Double.parseDouble(ValueOfArg) , CellType.NUMERIC);
                 }
+                else if (ValueOfArg.equals("Undefined"))
+                {
+                    return new IndendityExpression(ValueOfArg, CellType.UNDEFINED);
+                }
                 else
                 {
                     return new IndendityExpression(ValueOfArg, CellType.STRING);
@@ -71,8 +75,7 @@ import java.util.Stack;
 
                     return new PlusExpression(arg1, arg2);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
             }
         },
@@ -92,8 +95,7 @@ import java.util.Stack;
                     }
                     return new MinusExpression(arg1, arg2);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
 
             }
@@ -114,8 +116,7 @@ import java.util.Stack;
                     }
                     return new DivideExpression(arg1, arg2);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
 
             }
@@ -138,8 +139,7 @@ import java.util.Stack;
                     }
                     return new ModExpression(arg1, arg2);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
 
             }
@@ -160,8 +160,7 @@ import java.util.Stack;
                     }
                     return new PowExpression(arg1, arg2);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
             }
         },
@@ -181,8 +180,7 @@ import java.util.Stack;
                     }
                     return new TimesExpression(arg1, arg2);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
             }
         },
@@ -201,8 +199,7 @@ import java.util.Stack;
 
                     return new ABSExpression(arg1);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
 
             }
@@ -216,7 +213,7 @@ import java.util.Stack;
                 }
                 catch (NumberFormatException e)
                 {
-                    return false;
+                    throw e;
                 }
             }
 
@@ -231,14 +228,12 @@ import java.util.Stack;
                     Expression arg1 = parseExpression(args.get(0).trim(), sheet, cell);
                     Expression arg2 = parseExpression(args.get(1).trim(), sheet, cell);
 
-
                     if (!arg1.getFunctionResultType().equals(CellType.STRING) || !arg2.getFunctionResultType().equals(CellType.STRING)) {
-                        throw new IllegalArgumentException("Invalid argument for CONCAT, expected 2 Numeric and got " + arg1.getFunctionResultType() + " " + arg2.getFunctionResultType());
+                        throw new IllegalArgumentException("Invalid argument for CONCAT in cell: " + cell.getName() + ". expected 2 String and got " + arg1.getFunctionResultType() + " and " + arg2.getFunctionResultType());
                     }
                     return new ConcatExpression(arg1, arg2);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
 
             }
@@ -273,8 +268,7 @@ import java.util.Stack;
 
                     return new SubExpression(arg1, arg2, arg3);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
             }
 
@@ -304,10 +298,8 @@ import java.util.Stack;
                         throw new IllegalArgumentException("Invalid number of arguments for REF, expecting 2 and received " + args.size());
                     }
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
-
 
                 Expression arg1 = parseExpression(args.get(0).trim() , sheet , cell);
                 try {
@@ -315,31 +307,56 @@ import java.util.Stack;
                         throw new IllegalArgumentException("Invalid argument for REF, expected 1 String including column and row and got " + args.get(0).trim());
                     }
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
+                    throw e;
                 }
 
-                int column = args.get(0).trim().charAt(0) - 'A' + 1;
+                int column = args.get(0).toUpperCase().trim().charAt(0) - 'A' + 1;
                 try {
                     if (column < 1 || column > sheet.getSheetLayout().getNumOfCols())
                         throw new IllegalArgumentException("Invalid argument for REF, expected a column between 1 and " + sheet.getSheetLayout().getNumOfCols() + " and got " + column);
                 }catch (IllegalArgumentException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    return null;
+                    throw e;
                 }
-                int row ;
+                int row;
                 try{
-                    row = Integer.parseInt(args.get(0).trim().substring(1));
-                }
-                catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Invalid argument for REF, expected a number as rows and got " + args.get(0).trim().substring(1));
-                }
+                    if (isNumeric((args.get(0).trim().substring(1)))){
+                        row = Integer.parseInt(args.get(0).trim().substring(1));
+                    }
+                    else{
+                        throw new IllegalArgumentException("Invalid argument for REF, expected a number as rows and got " + args.get(0).trim().substring(1));
+                    }
 
-                if(row < 1 || row > sheet.getSheetLayout().getNumOfRows())
-                    throw new IllegalArgumentException("Invalid argument for REF, expected a row between 1 and " + sheet.getSheetLayout().getNumOfRows() + " and got " + row);
+                    if(row < 1 || row > sheet.getSheetLayout().getNumOfRows())
+                        throw new IllegalArgumentException("Invalid argument for REF, expected a row between 1 and " + sheet.getSheetLayout().getNumOfRows() + " and got " + row);
+
+
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                }
+                try{
+                    if(cell.getCoordinate().getRow() == row && cell.getCoordinate().getColumn() == column){
+                        throw new IllegalArgumentException("Circular self dependency detected involving cell "+ cell.getName());
+                    }
+                }
+                catch (IllegalArgumentException e) {
+                    throw e;
+                }
 
 
                 return new REFExpression(args.get(0).trim() , sheet, cell);
 
+            }
+            public static boolean isNumeric(String arg)
+            {
+                try
+                {
+                    Double.parseDouble(arg);
+                    return true;
+                }
+                catch (NumberFormatException e)
+                {
+                    return false;
+                }
             }
         };
 

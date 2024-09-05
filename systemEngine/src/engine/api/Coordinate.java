@@ -1,5 +1,8 @@
 package engine.api;
 
+import engine.impl.CoordinateDTO;
+import engine.impl.CoordinateImpl;
+
 public interface Coordinate {
     int getRow();
     int getColumn();
