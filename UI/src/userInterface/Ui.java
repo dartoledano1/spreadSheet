@@ -113,7 +113,7 @@ public class Ui {
             }
         }
         private void updateCell() {
-            String cellIdentity =" ";
+            String cellIdentity = " ";
             do {
                 try {
                     System.out.print("Enter a valid cell identity (e.g., A4): ");
@@ -145,9 +145,13 @@ public class Ui {
                 engine.updateCell(cellIdentity, newValue);
                 System.out.println("Cell updated successfully.");
 
-            }catch (Exception e){
+            } catch (ArithmeticException e) {
+                System.out.println(e.getMessage());
+                return;
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
                 System.out.println("Cell update failed.");
+
 
             }
         }
@@ -235,7 +239,7 @@ public class Ui {
 
             for (int col = 0; col < sheetLayout.getNumOfCols(); col++) {
                 String cellId = String.format("%c%d", 'A' + col, row);
-                CoordinateImpl coordinate = new CoordinateImpl(row, col);
+                CoordinateImpl coordinate = new CoordinateImpl(row, col +1);
                 Cell cell = sheet.get(coordinate);
                 CellImpl cellImpl = (CellImpl) cell;
                 String value = !sheet.containsKey(coordinate) ? " " : (cellImpl.getEffectiveValue() == null ? " " : cellImpl.getEffectiveValue().toString());

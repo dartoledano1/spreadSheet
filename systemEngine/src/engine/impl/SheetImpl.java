@@ -128,11 +128,7 @@ public class SheetImpl implements SheetReader,SheetWriter {
     public void updateCell(String cellIdentity, String value) {
 
         Cell cell = getCell(cellIdentity);
-        Cell cellCopy = null;
         int changedCells = 0;
-        if (cell != null) {
-            cellCopy = new CellImpl((CellImpl) cell);
-        }
         try {
             setCell(cellIdentity, value);
             cell = getCell(cellIdentity);
@@ -149,14 +145,7 @@ public class SheetImpl implements SheetReader,SheetWriter {
             }
 
         } catch (Exception e) {
-            if (cellCopy != null) {
-                cell.copyCell((CellImpl) cellCopy);
-                updateInfluencingCells(cell, changedCells);
-            }
-            else{
-                cell.setEffectiveValue(" ");
-                cell.setOriginalValue(" ");
-            }
+            updateInfluencingCells(cell, changedCells);
             throw e;
         }
     }
@@ -173,7 +162,7 @@ public class SheetImpl implements SheetReader,SheetWriter {
             } catch (Exception e) {
                 influencedCell.setCellToUndefined();
                 influencedCell.cancelDependencies();
-                throw new IllegalArgumentException("Cell" + influencedCell.getName()+ "is now undefined");
+                throw new ArithmeticException("Cell " + influencedCell.getName()+ " is now undefined");
             }
         }
         return changedCellCount;

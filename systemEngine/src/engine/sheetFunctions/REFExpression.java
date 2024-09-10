@@ -27,7 +27,12 @@ public class REFExpression implements Expression {
         Object value = REFCell.getEffectiveValue();
 
         if(value instanceof String){
-            return CellType.STRING;
+            if(((String) value).equalsIgnoreCase("undefined")){
+                return CellType.UNDEFINED;
+            }
+            else {
+                return CellType.STRING;
+            }
         }
         else if(value instanceof Integer){
             return CellType.NUMERIC;

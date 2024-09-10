@@ -28,7 +28,7 @@ import java.util.Stack;
                 {
                     return new IndendityExpression(Double.parseDouble(ValueOfArg) , CellType.NUMERIC);
                 }
-                else if (ValueOfArg.equals("Undefined"))
+                else if (isUndefined(ValueOfArg))
                 {
                     return new IndendityExpression(ValueOfArg, CellType.UNDEFINED);
                 }
@@ -55,6 +55,9 @@ import java.util.Stack;
                 {
                     return false;
                 }
+            }
+            public static boolean isUndefined(String arg){
+                return "Undefined".equalsIgnoreCase(arg);
             }
 
 
@@ -228,7 +231,7 @@ import java.util.Stack;
                     Expression arg1 = parseExpression(args.get(0).trim(), sheet, cell);
                     Expression arg2 = parseExpression(args.get(1).trim(), sheet, cell);
 
-                    if (!arg1.getFunctionResultType().equals(CellType.STRING) || !arg2.getFunctionResultType().equals(CellType.STRING)) {
+                    if (!arg1.getFunctionResultType().equals(CellType.STRING) || arg2.getFunctionResultType().equals(CellType.UNDEFINED) || (!arg2.getFunctionResultType().equals(CellType.STRING) ||arg2.getFunctionResultType().equals(CellType.UNDEFINED)))  {
                         throw new IllegalArgumentException("Invalid argument for CONCAT in cell: " + cell.getName() + ". expected 2 String and got " + arg1.getFunctionResultType() + " and " + arg2.getFunctionResultType());
                     }
                     return new ConcatExpression(arg1, arg2);
